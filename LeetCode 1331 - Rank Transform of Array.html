@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Array Rank Transform Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        .container > div {
+            margin-bottom: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h3 {
+            color: #2c3e50;
+        }
+        .array-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .array-item {
+            padding: 8px 12px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .array-item.highlight {
+            background-color: #e74c3c;
+            transform: scale(1.1);
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #27ae60;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+        }
+        .code-snippet {
+            background-color: #f9f9f9;
+            border-left: 4px solid #2980b9;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .step-explanation {
+            margin-top: 10px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Array Rank Transform Demo</h1>
+    <div class="container">
+        <div>
+            <input type="text" id="inputArray" value="100,100,50,40,40,20,10" placeholder="Enter comma-separated numbers">
+            <button onclick="resetDemo()">Reset</button>
+        </div>
+        <div>
+            <h3>Input Array:</h3>
+            <div id="inputDisplay" class="array-display"></div>
+            <div class="code-snippet">vector&lt;int&gt; arr = { (input the array) };</div>
+        </div>
+        <div>
+            <h3>Set:</h3>
+            <div id="setDisplay" class="array-display"></div>
+            <div class="code-snippet">set&lt;int&gt; s(arr.begin(), arr.end());</div>
+            <div class="step-explanation">Creates a sorted set of unique elements from the input array.</div>
+        </div>
+        <div>
+            <h3>Map:</h3>
+            <div id="mapDisplay" class="array-display"></div>
+            <div class="code-snippet">
+unordered_map&lt;int, int&gt; m;
+int start = 1;
+for(int i : s) {
+    m[i] = start++;
+}</div>
+            <div class="step-explanation">Assigns ranks to each unique element, starting from 1.</div>
+        </div>
+        <div>
+            <h3>Result:</h3>
+            <div id="resultDisplay" class="array-display"></div>
+            <div class="code-snippet">
+for(int i = 0 ; i < arr.size() ; i++) {
+    arr[i] = m[arr[i]];
+}</div>
+            <div class="step-explanation">Transforms the original array by replacing each element with its rank.</div>
+        </div>
+        <div>
+            <button id="stepButton" onclick="nextStep()">Create Set</button>
+        </div>
+    </div>
+
+    <script>
+        let inputArray = [100, 100, 50, 40, 40, 20, 10];
+        let set = [];
+        let map = {};
+        let result = [];
+        let step = 0;
+
+        function updateDisplays() {
+            document.getElementById('inputDisplay').innerHTML = inputArray.map(num => `<span class="array-item">${num}</span>`).join('');
+            document.getElementById('setDisplay').innerHTML = set.map(num => `<span class="array-item">${num}</span>`).join('');
+            document.getElementById('mapDisplay').innerHTML = Object.entries(map).map(([key, value]) => `<span class="array-item">${key}: ${value}</span>`).join('');
+            document.getElementById('resultDisplay').innerHTML = result.map(num => `<span class="array-item">${num}</span>`).join('');
+        }
+
+        function resetDemo() {
+            inputArray = document.getElementById('inputArray').value.split(',').map(Number);
+            set = [];
+            map = {};
+            result = [];
+            step = 0;
+            updateDisplays();
+            document.getElementById('stepButton').textContent = 'Create Set';
+            document.getElementById('stepButton').disabled = false;
+        }
+
+        function nextStep() {
+            if (step === 0) {
+                set = [...new Set(inputArray)].sort((a, b) => a - b);
+                document.getElementById('stepButton').textContent = 'Create Map';
+                highlightElements('setDisplay');
+            } else if (step === 1) {
+                set.forEach((value, index) => {
+                    map[value] = index + 1;
+                });
+                document.getElementById('stepButton').textContent = 'Transform Array';
+                highlightElements('mapDisplay');
+            } else if (step === 2) {
+                result = inputArray.map(value => map[value]);
+                document.getElementById('stepButton').textContent = 'Done';
+                document.getElementById('stepButton').disabled = true;
+                highlightElements('resultDisplay');
+            }
+            step++;
+            updateDisplays();
+        }
+
+        function highlightElements(elementId) {
+            const elements = document.getElementById(elementId).getElementsByClassName('array-item');
+            for (let elem of elements) {
+                elem.classList.add('highlight');
+                setTimeout(() => elem.classList.remove('highlight'), 1000);
+            }
+        }
+
+        resetDemo();
+    </script>
+</body>
+</html>
