@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Array Arrangement Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anime/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .explanation {
+            background-color: #e6f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .step {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #progress {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #input-container {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 300px;
+        }
+        #visualization {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .array-element {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        #remainder-map {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .remainder-group {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #pairs-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Array Arrangement Visualizer</h1>
+    
+    <div id="input-container">
+        <input type="text" id="array-input" placeholder="Enter array elements (comma-separated)">
+        <input type="number" id="k-input" placeholder="Enter k">
+        <button onclick="processInput()">Visualize</button>
+    </div>
+
+    <!-- <pre><code class="language-cpp">class Solution {
+public:
+    bool canArrange(vector<int>& arr, int k) {
+        unordered_map<int, int> m;
+
+        for(int x : arr) m[((x % k) + k) % k]++;
+
+        for(const auto& pair : m) {
+            int remainder = pair.first;
+            int count = pair.second;
+
+            if(remainder == 0) {
+                if(count % 2 == 1) return false;
+            } else {
+                int compliment = k - remainder;
+                if(m[compliment] != count) return false;
+            }
+        }
+        return true;
+    }
+};</code></pre> -->
+
+    <div id="visualization"></div>
+    <div id="remainder-map"></div>
+    <div id="pairs-container"></div>
+
+    <div id="explanation-container">
+        <div class="step active">
+            <h2>Step 1: Input Array and k</h2>
+            <div class="explanation">
+                <p>Enter your array of integers separated by commas, and provide a value for k. Then click "Visualize" to start the process.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>Step 2: Initialize and Populate Hash Map</h2>
+            <div class="explanation">
+                <p>We create a hash map to store the frequency of remainders when elements are divided by k. The map is populated as follows:</p>
+                <ul>
+                    <li>Key: The remainder when an element is divided by k</li>
+                    <li>Value: The count of elements that give this remainder</li>
+                </ul>
+                <p>For each element x in the array:</p>
+                <ol>
+                    <li>Calculate <code>((x % k) + k) % k</code> to get the positive remainder</li>
+                    <li>Increment the count for this remainder in the map</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>Step 3: Check Pair Conditions</h2>
+            <div class="explanation">
+                <p>We now check if the elements can be paired to form sums divisible by k:</p>
+                <ol>
+                    <li>For remainder 0:
+                        <ul>
+                            <li>The count must be even for pairing</li>
+                            <li>If odd, return false</li>
+                        </ul>
+                    </li>
+                    <li>For non-zero remainders:
+                        <ul>
+                            <li>Calculate the complement: <code>k - remainder</code></li>
+                            <li>The count of the complement must match the count of the current remainder</li>
+                            <li>If not, return false</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>Step 4: Final Result</h2>
+            <div class="explanation">
+                <p>If all conditions for pairing have been met, the function returns true, indicating that the array can be arranged into pairs with sums divisible by k.</p>
+            </div>
+        </div>
+    </div>
+
+    <button id="prev" onclick="changeStep(-1)">Previous</button>
+    <button id="next" onclick="changeStep(1)">Next</button>
+    <div id="progress"></div>
+
+    <script>
+        let currentStep = 0;
+        const steps = document.querySelectorAll('.step');
+        const totalSteps = steps.length;
+        let inputArray = [];
+        let k = 0;
+        let remainderMap = new Map();
+
+        function updateProgress() {
+            document.getElementById('progress').textContent = `Step ${currentStep + 1} of ${totalSteps}`;
+        }
+
+        function changeStep(direction) {
+            steps[currentStep].classList.remove('active');
+            currentStep = (currentStep + direction + totalSteps) % totalSteps;
+            steps[currentStep].classList.add('active');
+            updateProgress();
+            if (currentStep === 1) visualizeHashMap();
+            if (currentStep === 2) visualizePairChecking();
+            if (currentStep === 3) visualizeFinalResult();
+        }
+
+        function processInput() {
+            const arrayInput = document.getElementById('array-input').value;
+            k = parseInt(document.getElementById('k-input').value);
+            inputArray = arrayInput.split(',').map(num => parseInt(num.trim()));
+            
+            // Reset and start visualization
+            currentStep = 0;
+            steps.forEach(step => step.classList.remove('active'));
+            steps[currentStep].classList.add('active');
+            updateProgress();
+            
+            visualizeArray();
+        }
+
+        function visualizeArray() {
+            const visualization = document.getElementById('visualization');
+            visualization.innerHTML = '';
+            inputArray.forEach(num => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.textContent = num;
+                visualization.appendChild(element);
+            });
+
+            // Animate the array elements
+            anime({
+                targets: '.array-element',
+                translateY: [-50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100)
+            });
+        }
+
+        function visualizeHashMap() {
+            remainderMap.clear();
+            const remainderContainer = document.getElementById('remainder-map');
+            remainderContainer.innerHTML = '';
+
+            inputArray.forEach(num => {
+                const remainder = ((num % k) + k) % k;
+                if (!remainderMap.has(remainder)) {
+                    remainderMap.set(remainder, 0);
+                }
+                remainderMap.set(remainder, remainderMap.get(remainder) + 1);
+            });
+
+            remainderMap.forEach((count, remainder) => {
+                const group = document.createElement('div');
+                group.className = 'remainder-group';
+                group.innerHTML = `<h3>Remainder ${remainder}</h3><p>Count: ${count}</p>`;
+                remainderContainer.appendChild(group);
+            });
+
+            // Animate the remainder groups
+            anime({
+                targets: '.remainder-group',
+                scale: [0, 1],
+                opacity: [0, 1],
+                delay: anime.stagger(100)
+            });
+        }
+
+        function visualizePairChecking() {
+            const pairsContainer = document.getElementById('pairs-container');
+            pairsContainer.innerHTML = '<h2>Pair Checking</h2>';
+
+            let canArrange = true;
+
+            remainderMap.forEach((count, remainder) => {
+                const pairInfo = document.createElement('div');
+                if (remainder === 0) {
+                    if (count % 2 === 1) {
+                        pairInfo.innerHTML = `<p style="color: red;">Remainder 0 has odd count (${count}). Cannot arrange.</p>`;
+                        canArrange = false;
+                    } else {
+                        pairInfo.innerHTML = `<p style="color: green;">Remainder 0 has even count (${count}). Can be paired.</p>`;
+                    }
+                } else {
+                    const complement = k - remainder;
+                    if (remainderMap.get(complement) !== count) {
+                        pairInfo.innerHTML = `<p style="color: red;">Remainder ${remainder} (count: ${count}) doesn't match with complement ${complement} (count: ${remainderMap.get(complement) || 0}). Cannot arrange.</p>`;
+                        canArrange = false;
+                    } else {
+                        pairInfo.innerHTML = `<p style="color: green;">Remainder ${remainder} (count: ${count}) matches with complement ${complement}. Can be paired.</p>`;
+                    }
+                }
+                pairsContainer.appendChild(pairInfo);
+            });
+
+            // Animate the pair checking information
+            anime({
+                targets: '#pairs-container div',
+                translateX: [-50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100)
+            });
+        }
+
+        function visualizeFinalResult() {
+            const pairsContainer = document.getElementById('pairs-container');
+            const finalResult = document.createElement('div');
+            finalResult.innerHTML = `<h2>Final Result</h2>`;
+            
+            let canArrange = true;
+            remainderMap.forEach((count, remainder) => {
+                if (remainder === 0) {
+                    if (count % 2 === 1) canArrange = false;
+                } else {
+                    const complement = k - remainder;
+                    if (remainderMap.get(complement) !== count) canArrange = false;
+                }
+            });
+
+            if (canArrange) {
+                finalResult.innerHTML += `<p style="color: green; font-size: 1.2em;">The array CAN be arranged into pairs with sum divisible by ${k}.</p>`;
+            } else {
+                finalResult.innerHTML += `<p style="color: red; font-size: 1.2em;">The array CANNOT be arranged into pairs with sum divisible by ${k}.</p>`;
+            }
+            
+            pairsContainer.appendChild(finalResult);
+
+            // Animate the final result
+            anime({
+                targets: '#pairs-container div:last-child',
+                scale: [0.5, 1],
+                opacity: [0, 1],
+                duration: 1000
+            });
+        }
+
+        updateProgress();
+    </script>
+</body>
+</html>
