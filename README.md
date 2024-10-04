@@ -6,7 +6,7 @@ LeetCode Visualization is an interactive tool designed to help users understand 
 - Diagrams & Charts: Visual representations of algorithms and data structures to make the learning experience more intuitive.
 - Real-time Feedback: As users modify their input, the corresponding visualizations update in real-time.
 - LeetCode Problem Support: Works for a variety of LeetCode problems, helping users understand solutions at a deeper level.
-- 
+  
 # How It Works
 - Select a LeetCode problem.
 - Input your own example/test case.
