@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode 1071: GCD of Strings Improved Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ecf0f1;
+        }
+        h1, h2 {
+            color: #34495e;
+        }
+        .problem-statement {
+            background-color: #d5e5f2;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .visualization-container {
+            background-color: #fff;
+            border: 1px solid #bdc3c7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            flex: 1;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #visualization {
+            width: 100%;
+            min-height: 200px;
+            background-color: #f9f9f9;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #e8f6f3;
+            border-radius: 5px;
+            border-left: 5px solid #1abc9c;
+        }
+        .result {
+            font-weight: bold;
+            color: #16a085;
+        }
+    </style>
+</head>
+<body>
+    <h1>LeetCode 1071: Greatest Common Divisor of Strings</h1>
+    
+    <div class="problem-statement">
+        <h2>Problem Statement</h2>
+        <p>
+            For two strings s and t, we say "t divides s" if and only if s = t + ... + t (i.e., t is concatenated with itself one or more times).
+            Given two strings str1 and str2, return the largest string x such that x divides both str1 and str2.
+        </p>
+    </div>
+
+    <div class="visualization-container">
+        <h2>GCD of Strings Step-by-Step Visualization</h2>
+        <div class="input-container">
+            <div class="input-group">
+                <input type="text" id="str1-input" placeholder="Enter string 1">
+            </div>
+            <div class="input-group">
+                <input type="text" id="str2-input" placeholder="Enter string 2">
+            </div>
+            <button class="btn" onclick="startVisualization()">Start</button>
+        </div>
+        <div id="visualization"></div>
+        <button class="btn" id="next-btn" onclick="nextStep()" disabled>Next Step</button>
+    </div>
+
+    <script>
+        let str1, str2;
+        let currentStep = 0;
+        const steps = [
+            checkConcatenation,
+            calculateGCD,
+            returnResult
+        ];
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function startVisualization() {
+            str1 = document.getElementById('str1-input').value;
+            str2 = document.getElementById('str2-input').value;
+
+            if (!str1 || !str2) {
+                alert('Please enter both strings');
+                return;
+            }
+
+            currentStep = 0;
+            document.getElementById('next-btn').disabled = false;
+            document.getElementById('visualization').innerHTML = '';
+            nextStep();
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                steps[currentStep]();
+                currentStep++;
+            }
+            if (currentStep >= steps.length) {
+                document.getElementById('next-btn').disabled = true;
+            }
+        }
+
+        function checkConcatenation() {
+            const visualization = document.getElementById('visualization');
+            const concatenationsEqual = str1 + str2 === str2 + str1;
+            visualization.innerHTML = `
+                <div class="step">
+                    <h3>Step 1: Check Concatenation</h3>
+                    <p>str1 + str2 = "${str1 + str2}"</p>
+                    <p>str2 + str1 = "${str2 + str1}"</p>
+                    <p class="result">Result: ${concatenationsEqual ? 'Concatenations are equal, continue to next step' : 'Concatenations are not equal, return ""'}</p>
+                </div>
+            `;
+            if (!concatenationsEqual) {
+                document.getElementById('next-btn').disabled = true;
+                visualization.innerHTML += `
+                    <div class="step">
+                        <h3>Final Result</h3>
+                        <p class="result">The GCD of Strings is: ""</p>
+                    </div>
+                `;
+            }
+        }
+
+        function calculateGCD() {
+            const n1 = str1.length;
+            const n2 = str2.length;
+            const gcdLength = gcd(n1, n2);
+            const visualization = document.getElementById('visualization');
+            visualization.innerHTML += `
+                <div class="step">
+                    <h3>Step 2: Calculate GCD</h3>
+                    <p>Length of str1: ${n1}</p>
+                    <p>Length of str2: ${n2}</p>
+                    <p class="result">GCD(${n1}, ${n2}) = ${gcdLength}</p>
+                </div>
+            `;
+        }
+
+        function returnResult() {
+            const gcdLength = gcd(str1.length, str2.length);
+            const result = str1.substring(0, gcdLength);
+            const visualization = document.getElementById('visualization');
+            visualization.innerHTML += `
+                <div class="step">
+                    <h3>Step 3: Return Result</h3>
+                    <p>Substring of str1 with length ${gcdLength}: "${result}"</p>
+                    <p class="result">Final Result: "${result}"</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
